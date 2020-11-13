@@ -191,7 +191,7 @@ public class PipelineCache implements MonitoredPoller {
   private List<Pipeline> fetchHydratedPipelines() {
     List<Map<String, Object>> rawPipelines = fetchRawPipelines();
 
-    return rawPipelines.stream()
+    return rawPipelines.parallelStream()
         .map(this::process)
         .filter(Optional::isPresent)
         .map(Optional::get)
@@ -209,7 +209,7 @@ public class PipelineCache implements MonitoredPoller {
   }
 
   private static Map<String, List<Trigger>> extractEnabledTriggersFrom(List<Pipeline> pipelines) {
-    return pipelines.stream()
+    return pipelines.parallelStream()
         .filter(p -> !p.isDisabled())
         .flatMap(p -> Optional.ofNullable(p.getTriggers()).orElse(Collections.emptyList()).stream())
         .filter(Trigger::isEnabled)
@@ -336,7 +336,9 @@ public class PipelineCache implements MonitoredPoller {
 
   // visible for testing
   public static List<Pipeline> decorateTriggers(final List<Pipeline> pipelines) {
-    return pipelines.stream().map(PipelineCache::decorateTriggers).collect(Collectors.toList());
+    return pipelines.parallelStream()
+        .map(PipelineCache::decorateTriggers)
+        .collect(Collectors.toList());
   }
 
   @Override
